@@ -14,26 +14,20 @@ powershell -c "irm https://raw.githubusercontent.com/RicSchonfelder/opencode-ptb
 
 O que faz:
 
-- Detecta a arquitetura (x64 / arm64) e baixa o build **x64-baseline** — roda em CPUs antigas sem AVX2
+- Baixa a versao **pt-BR** (TUI traduzida para Portugues do Brasil) desta release `pt-br-*`
+- Detecta a arquitetura (x64 / arm64) e usa o build **x64-baseline** — roda em CPUs antigas sem AVX2
 - Forca TLS 1.2 (necessario no Windows 7/8, que so usam TLS 1.0 por padrao)
-- Extrai em `D:\Programas\opencode\bin` quando a pasta existir (senao usa `%LOCALAPPDATA%\opencode\bin`), sem admin, e adiciona ao PATH do usuario
+- Extrai em `%LOCALAPPDATA%\opencode\bin` (nunca em D:), sem admin, e adiciona ao PATH do usuario
+- Reinstala sozinho se o canal instalado for outro (marcador `.opencode-channel`)
 - Compativel com PowerShell 2.0+ (usa WebClient + Shell COM em vez de Invoke-RestMethod/Expand-Archive)
 
-### Versao em Portugues (pt-BR)
+### Versao oficial (upstream)
 
-Para instalar a versao com a TUI traduzida para Portugues (Brasil), use a flag `-PtBr`:
-
-```powershell
-powershell -c "irm https://raw.githubusercontent.com/RicSchonfelder/opencode-ptbr/dev/installer/windows/install-opencode.ps1 | iex" -PtBr
-```
-
-Localmente:
+Para instalar a versao oficial sem traducao, use a flag `-Official`:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File install-opencode.ps1 -PtBr
+powershell -ExecutionPolicy Bypass -File install-opencode.ps1 -Official
 ```
-
-A versao pt-BR e baixada da release `pt-br-*` deste mesmo repositorio.
 
 ## Uso local (sem internet no host intermediario)
 

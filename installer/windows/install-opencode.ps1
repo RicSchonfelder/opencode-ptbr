@@ -1,9 +1,10 @@
 # Instalador do opencode para Windows antigos (PowerShell 2.0+)
 # Uso remoto:  irm https://SEU-HOST/install-opencode.ps1 | iex
 # Uso local:   powershell -ExecutionPolicy Bypass -File install-opencode.ps1
-# Versao pt-BR: powershell -ExecutionPolicy Bypass -File install-opencode.ps1 -PtBr
+# Padrao: instala a versao pt-BR (deste repositorio)
+# Versao oficial (upstream): powershell -ExecutionPolicy Bypass -File install-opencode.ps1 -Official
 
-param([switch]$PtBr)
+param([switch]$Official, [switch]$PtBr)
 
 $ErrorActionPreference = 'Stop'
 # Windows 7/8 so usam TLS 1.0 por padrao; GitHub exige 1.2
@@ -15,19 +16,21 @@ if ($pa -match 'ARM64') { $arch = 'arm64' }
 elseif ($pa -match 'AMD64') { $arch = 'x64-baseline' }  # ponytail: baseline roda em qualquer x64 (sem exigir AVX2)
 else { throw 'opencode nao suporta Windows 32-bit.' }
 
-# Instala em D:\Programas se existir; senao, cai para o AppData do usuario
-$base = if (Test-Path 'D:\Programas') { 'D:\Programas\opencode\bin' } else { Join-Path $env:LOCALAPPDATA 'opencode\bin' }
-$bin = $base
+# Instala sempre no AppData do usuario (nunca em D:)
+$bin = Join-Path $env:LOCALAPPDATA 'opencode\bin'
 $tmp = Join-Path $env:TEMP 'opencode-install.zip'
-if ($PtBr) {
-  $url = "https://github.com/RicSchonfelder/opencode-ptbr/releases/latest/download/opencode-windows-x64-ptbr.zip"
-  $sub = 'pt-br'
-} else {
+if ($Official) {
   $url = "https://github.com/anomalyco/opencode/releases/latest/download/opencode-windows-$arch.zip"
   $sub = 'oficial'
+} else {
+  $url = "https://github.com/RicSchonfelder/opencode-ptbr/releases/latest/download/opencode-windows-x64-ptbr.zip"
+  $sub = 'pt-br'
 }
 $exe = Join-Path $bin 'opencode.exe'
-if (Test-Path $exe) {
+# Reinstala se o canal instalado for diferente do pedido (marcador .opencode-channel)
+$marker = Join-Path $bin '.opencode-channel'
+$installed = if (Test-Path $marker) { (Get-Content $marker -TotalCount 1) } else { '' }
+if ((Test-Path $exe) -and ($installed -eq $sub)) {
   Write-Host 'opencode ja esta instalado - pulando download.'
 } else {
   Write-Host "Baixando opencode ($sub, $arch)..."
@@ -42,6 +45,8 @@ if (Test-Path $exe) {
 
   if (-not (Test-Path $exe)) { throw 'Falha na extracao: opencode.exe nao encontrado.' }
   Remove-Item $tmp -Force -ErrorAction SilentlyContinue
+  Set-Content $marker $sub -Encoding ASCII
+  Write-Host "Instalado canal: $sub"
 }
 
 $p = [Environment]::GetEnvironmentVariable('Path', 'User')
